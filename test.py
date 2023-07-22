@@ -1,0 +1,2 @@
+print("lahiru")
+print("hi");

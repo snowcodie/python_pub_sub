@@ -6,22 +6,30 @@ import threading
 clients = {}
 
 def relay_message_to_subscribers(message, topic, publisher_addr):
-    for addr, (client_type, client_topic) in clients.items():
+    for addr, client_info in clients.items():
+        client_type = client_info["type"]
+        client_topic = client_info["topic"]
+
         if addr != publisher_addr and client_type == "SUBSCRIBER" and client_topic == topic:
             try:
-                client_socket = clients[addr]  # Get the subscriber's socket
-                client_socket.sendall(message.encode())
+                client_socket = client_info["socket"]  # Get the subscriber's socket
+                client_socket.sendall(message.encode('utf-8'))
             except (ConnectionResetError, KeyError):
                 pass
 
+
 def handle_client(client_socket, addr):
     try:
+        client_type = client_socket.recv(1024).decode('utf-8').upper()
+        topic = client_socket.recv(1024).decode('utf-8').upper()
+        clients[addr] = {"type": client_type, "topic": topic, "socket": client_socket}
+
+        print(f"Connected to {client_type} {addr} on topic {topic}.")
+
         while True:
-            data = client_socket.recv(1024).decode()
+            data = client_socket.recv(1024).decode('utf-8')
             if not data:
                 break
-
-            client_type, topic = clients[addr]
 
             # Check if the client is a Publisher and relay the message to Subscribers with the same topic
             if client_type == "PUBLISHER":
@@ -46,13 +54,6 @@ def start_server(port):
     try:
         while True:
             client_socket, client_addr = server_socket.accept()
-            print(f"Connected to client: {client_addr}")
-
-            client_type = client_socket.recv(1024).decode().upper()
-            topic = client_socket.recv(1024).decode().upper()
-
-            clients[client_addr] = (client_type, topic)
-
             threading.Thread(target=handle_client, args=(client_socket, client_addr)).start()
 
     except KeyboardInterrupt:

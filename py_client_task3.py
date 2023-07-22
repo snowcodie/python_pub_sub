@@ -1,5 +1,6 @@
 import socket
 import sys
+from time import sleep
 
 def start_client(server_ip, port, client_type, topic):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -7,8 +8,9 @@ def start_client(server_ip, port, client_type, topic):
         client_socket.connect((server_ip, port))
         print(f"Connected to server at {server_ip}:{port}")
 
-        client_socket.sendall(client_type.encode())
-        client_socket.sendall(topic.encode())
+        client_socket.send(client_type.encode('utf-8'))
+        sleep(0.5)
+        client_socket.send(topic.encode('utf-8'))
 
         if client_type == "PUBLISHER":
             print("You are in Publisher mode.")
@@ -16,14 +18,14 @@ def start_client(server_ip, port, client_type, topic):
 
             while True:
                 message = input("Type your message ('terminate' to exit): ")
-                client_socket.sendall(message.encode())
+                client_socket.sendall(message.encode('utf-8'))
 
                 if message.lower() == "terminate":
                     break
         else:
             try:
                 while True:
-                    message = client_socket.recv(1024).decode()
+                    message = client_socket.recv(1024).decode('utf-8')
                     print("Received: " + message)
             except (ConnectionResetError, KeyboardInterrupt):
                 pass

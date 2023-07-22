@@ -1,2 +1,0 @@
-print("lahiru")
-print("hi");

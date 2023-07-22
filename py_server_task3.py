@@ -63,7 +63,7 @@ def start_server(port):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: python my_server_app.py <PORT>")
+        print("Usage: python py_server_task3.py <PORT>")
         sys.exit(1)
 
     port = int(sys.argv[1])
